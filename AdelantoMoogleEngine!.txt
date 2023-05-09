@@ -1,0 +1,146 @@
+namespace MoogleEngine;
+
+
+public static class Moogle
+{
+    public static SearchResult Query(string query) {
+        // Modifique este método para responder a la búsqueda
+        List<SearchItem> Items =new List<SearchItem>();
+        foreach(string a in ListadodeArchivos()){
+            string contenido = LeerDocumento(a);
+            float score = EsCalificacion (contenido, query);
+            if (score > 0){
+                Items.Add(new SearchItem(a,contenido,score));
+            }
+        }
+        /*SearchItem[] items = new SearchItem[3] {
+            new SearchItem("Hello world", "Lorem ipsum dolor sit amet", 0.9f),
+            new SearchItem("Hello World", "Lorem ipsum dolor sit amet", 0.5f),
+            new SearchItem("Hello World", "Lorem ipsum dolor sit amet", 0.1f),
+        };*/
+        SearchItem[] resultado=new SearchItem[Items.Count];
+        for(int i=0;i<resultado.Length;i++)
+            resultado[i]=Items[i];
+
+        for (int k = 0; k <resultado.Length; k++){
+            for (int l = k + 1; l < resultado.Length; l++){
+                if(resultado[k].Score < resultado[l].Score){
+                    var TEMPORAL = resultado[k];
+                    resultado[k] = resultado[l];
+                    resultado[l] = TEMPORAL;
+                }
+            }
+        }
+        return new SearchResult(resultado, query);
+    }
+    static string LeerDocumento (string Ubicacion){
+        StreamReader primer = new StreamReader(Ubicacion);
+        string primer4 = primer.ReadToEnd();
+        return primer4;
+        
+    }
+    static IEnumerable<string> ListadodeArchivos (){
+        List<string>archivos = new List<string>();
+        string direccion = Directory.GetCurrentDirectory();
+        int final=direccion.IndexOf("MoogleServer");
+        direccion=direccion.Substring(0,final-1)+"/Content";
+        foreach (string item in Directory.EnumerateFiles(direccion))
+        {
+            archivos.Add(item);
+        }
+        return archivos;
+        
+    }
+
+    static float EsCalificacion(string texto, string patron){
+        float valor = 0f;
+        if (texto == patron){
+            return 1f;
+        }
+
+
+        char[] caracteres_a_eliminar = new[] { ',', '.', '/', ':', ';' };
+        char[] caracteres_especiales = new[] { '*', '!', '^', '~' };
+        foreach (char z in caracteres_a_eliminar)
+                texto = texto.Replace(z, ' ');
+
+        string [] palabrasdelTexto = texto.Split();
+        string [] palabrasdelPatron = patron.Split();
+
+         if(NegarTexto(texto, palabrasdelPatron) == true) 
+            return -1;
+
+        valor = valor + ObligarTexto (texto, palabrasdelPatron);
+        valor = valor + PrioridadPalabra (texto, palabrasdelPatron);
+        for(int p = 0; p < palabrasdelPatron.Length; p++){
+            string variable = palabrasdelPatron[p];
+            variable = variable.Replace("^",""); 
+            variable = variable.Replace("*","");
+            if (variable.Contains("~")){
+                string [] CercanoP = variable.Split("~");
+                valor = valor + CercaniaPalabra (texto, CercanoP);
+            }
+        }
+
+        valor = valor + CercaniaPalabra (texto, palabrasdelPatron);
+        return valor;
+    }
+
+    static bool NegarTexto (string texto, string [] palabrasaNegar){
+        for (int m = 0; m < palabrasaNegar.Length; m++){
+            if(palabrasaNegar[m].StartsWith('!') && 
+            texto.Contains(palabrasaNegar[m].Substring(1)) )
+            return true;
+        }
+         return false;        
+    }
+    static float ObligarTexto (string texto, string [] palabrasObligadas){
+        float evaluacion = 0f;
+        for (int n = 0; n < palabrasObligadas.Length; n++){
+            if(palabrasObligadas[n].StartsWith('^') &&
+                texto.Contains (palabrasObligadas[n].Substring(1))){
+                    evaluacion = evaluacion + RepeticionDePalabra(texto, 
+                    palabrasObligadas[n].Substring(1))* 0.01f;
+                }
+        }
+        return evaluacion;
+    }
+    static int RepeticionDePalabra (string texto, string palabra){
+        int repeticiones =  0;
+        int posicion = 0;
+        while (0 < texto.Length)
+        {
+            posicion = texto.IndexOf (palabra);
+            if (posicion != -1){
+                repeticiones ++;
+                texto = texto.Substring (posicion + palabra.Length);
+            }
+            else break;
+        }
+        return repeticiones;
+    }
+    static float PrioridadPalabra (string texto, string [] palabrasdePrioridad){
+        float evaluacion = 0f;
+        for (int o = 0; o < palabrasdePrioridad.Length; o++ ){
+            if (palabrasdePrioridad[o].StartsWith('*') &&
+            texto.Contains (palabrasdePrioridad[o].Substring(1))){
+                evaluacion = evaluacion + 
+                RepeticionDePalabra(texto, palabrasdePrioridad [o].Substring(1))* 0.8f;
+            }
+        }
+        return evaluacion;
+    }
+    static float CercaniaPalabra (string texto, string [] palabrasCercanas){
+        float evaluacion = 0f;
+        float [] Posiciones = new float [palabrasCercanas.Length];
+        for(int q = 0; q < palabrasCercanas.Length; q++){
+            Posiciones[q] = texto.IndexOf(palabrasCercanas[q]);
+        } 
+        float evaluacion2 = Posiciones[0];
+        for(int r = 1; r < Posiciones.Length; r++){
+            evaluacion2 = Math.Abs(evaluacion2 - Posiciones[r]); 
+        }
+        evaluacion = 1f/evaluacion2 *0.5f;
+        return evaluacion;
+    }
+}

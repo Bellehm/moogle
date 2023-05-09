@@ -1,0 +1,96 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.IO;
+
+namespace Proyecto
+{
+    class Program
+    {
+        #region Metodos del proyecto de Programacion;
+        public static void Listar()
+        {
+            string directory = Directory.GetCurrentDirectory();
+            foreach(string a in Directory.EnumerateFiles(directory))
+                Console.WriteLine(a);
+        }
+        public static bool Similar(string consulta, string posibilidad)
+        {
+            string mayor, menor;
+            if (consulta.Length > posibilidad.Length)
+            {
+                mayor = posibilidad;
+                menor = consulta;
+            }
+            else
+            {
+                mayor = consulta;
+                menor = posibilidad;
+            }
+            if (Math.Abs(mayor.Length - menor.Length) >= menor.Length / 2)
+                return false;
+            bool[] a = new bool[posibilidad.Length];
+            float max = 0f;
+            float result = Similitud(mayor, menor, a, max, menor.Length - mayor.Length);
+            Console.WriteLine(result);
+            return result >= 0.8f;
+        }
+        public static float Similitud(string consulta,string posibilidad, bool[]marcadas,float max,int resto)
+        {
+            if (resto==0)
+            {
+                float coincidencias = 0f;
+                int posicion = 0;
+                for (int i = 0; i < consulta.Length; i++)
+                {
+                    if (marcadas[i])
+                        posicion++;
+                    if (consulta[i] == posibilidad[i + posicion])
+                    {
+                        coincidencias++;
+                    }
+                }
+                return coincidencias / (float)consulta.Length;
+            }
+            else
+            {
+                for (int i = 0; i < marcadas.Length; i++)
+                {
+                    if (!marcadas[i])
+                    {
+                        marcadas[i] = true;
+                        max = Math.Max(max, Similitud(consulta, posibilidad, marcadas, max, resto - 1));
+                        marcadas[i] = false;
+                    }
+                }
+            }
+            return max;
+        }
+        public static string[] PreparaConsulta(string consulta)
+        {
+            char[] caracteres_a_eliminar = new[] { ',', '.', '/', ':', ';' };
+            char[] caracteres_especiales = new[] { '*', '!', '^', '~' };
+            foreach (char a in caracteres_a_eliminar)
+                consulta = consulta.Replace(a, ' ');
+            foreach(char a in caracteres_especiales)
+                for(int i = 1; i < consulta.Length-1; i++)
+                    if(consulta[i]==a)
+                    {
+                        string a1 = consulta.Substring(0, i);
+                        string a2 = consulta.Substring(i + 1);
+                        consulta = a1 + ' ' + a + ' ' + a2;
+                        i++;
+                    }
+            while (consulta.IndexOf("  ") >= 0)
+                consulta=consulta.Replace("  ", " ");
+            return consulta.Split(' ');
+        }
+        #endregion;
+        static void Main(string[] args)
+        {
+            Console.WriteLine(Similar("cerdo","cerdocerd"));
+        }
+    }
+}

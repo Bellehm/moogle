@@ -1,7 +1,2 @@
-.PHONY: build
-build:
-	dotnet build
-
-.PHONY: dev
-dev:
-	dotnet watch run --project MoogleServer
+	(dotnet build)	
+   (dotnet watch run --project MoogleServer)

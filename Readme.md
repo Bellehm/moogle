@@ -2,9 +2,7 @@
 
 ![](moogle.png)
 
-> Proyecto de Programación I.
-> Facultad de Matemática y Computación - Universidad de La Habana.
-> Cursos 2021, 2022.
+> Proyecto de Programación I. Facultad de Matemática y Computación. Universidad de La Habana. Curso 2021.
 
 Moogle! es una aplicación *totalmente original* cuyo propósito es buscar inteligentemente un texto en un conjunto de documentos.
 
@@ -49,6 +47,8 @@ Cada `SearchItem` recibe 3 argumentos en su constructor: `title`, `snippet` y `s
 
 > ⚠️ Por supuesto, debes devolver los `items` ordenados de mayor a menor por este valor de `score`!
 
+El parámetro `suggestion` de la clase `SearchResult` es para darle una sugerencia al usuario cuando su búsqueda da muy pocos resultados (tú debes decidir qué serían pocos resultados en este contexto). Esta sugerencia debe ser algo similar a la consulta del usuario pero que sí exista, de forma que si el usuario se equivoca, por ejemplo, escribiendo `"reculsibidá"`, y no aparece (evidentemente) ningún documento con ese contenido, le podamos sugerir la palabra `"recursividad"`.
+
 ## Sobre la búsqueda
 
 Queremos que la búsqueda sea lo más inteligente posible, por ese motivo no podemos limitarnos a los documentos donde aparece exactamente la frase introducida por el usuario. Aquí van algunos requisitos que debe cumplir esta búsqueda, pero eres libre de adicionar cualquier otra funcionalidad que ayude a mejorar y hacer más inteligente la búsqueda.
@@ -61,6 +61,22 @@ Queremos que la búsqueda sea lo más inteligente posible, por ese motivo no pod
 - De la misma forma, si un documento tiene más términos de la consulta que otro, en general debería tener un `score` más alto (a menos que sean términos menos relevantes).
 - Algunas palabras excesivamente comunes como las preposiciones, conjunciones, etc., deberían ser ignoradas por completo ya que aparecerán en la inmensa mayoría de los documentos (esto queremos que se haga de forma automática, o sea, que no haya una lista cableada de palabras a ignorar, sino que se computen de los documentos).
 
+### Operadores de búsqueda
+
+Con estas ideas ya podemos hacer algo, pero para mejorar la búsqueda aún más queremos adicionar operadores a la consulta que permitan darle más control al usuario. Por ejemplo:
+
+- Un símbolo `!` delante de una palabra (e.j., `"algoritmos de búsqueda !ordenación"`) indica que esa palabra **no debe aparecer** en ningún documento que sea devuelto.
+- Un símbolo `^` delante de una palabra (e.j., `"algoritmos de ^ordenación"`) indica que esa palabra **tiene que aparecer** en cualquier documento que sea devuelto.
+- Un símbolo `~` entre dos o más términos indica que esos términos deben **aparecer cerca**, o sea, que mientras más cercanos estén en el documento mayor será la relevancia. Por ejemplo, para la búsqueda `"algoritmos ~ ordenación"`, mientras más cerca están las palabras `"algoritmo"` y `"ordenación"`, más alto debe ser el `score` de ese documento.
+- Cualquier cantidad de símbolos `*` delante de un término indican que ese término es más importante, por lo que su influencia en el `score` debe ser mayor que la tendría normalmente (este efecto será acumulativo por cada `*`, por ejemplo `"algoritmos de **ordenación"` indica que la palabra `"ordenación"` tiene dos veces más prioridad que `"algoritmos"`).
+
+### Ideas extras
+
+Nuestros usuarios son muy exigentes, pero no podemos darles todo. Algunas ideas que no creemos que sean estrictamente necesarias pero que harían nuestra aplicación mucho mejor son:
+
+- Si las palabras exactas no aparecen, pero aparecen palabras derivadas de la misma raíz, también queremos devolver esos documentos (por ejemplo, si no está `"ordenación"` pero estar `"ordenados"`, ese documento puede devolverse pero con un `score` menor).
+- Si aparecen palabras relacionadas aunque no tengan la misma raíz (por ejemplo si la búsqueda es `"computadora"` y el documento tiene `"ordenador"`), también queremos devolver esos documentos pero con menor `score` que si apareciera la palabra exacta o una de la misma raíz.
+
 ### Evaluación del `score`
 
 De manera general el valor de `score` debe corresponder a cuán relevante es el documento devuelto para la búsqueda realizada. Como te hemos explicado antes, hay muchos factores que aumentan o disminuyen esta relevancia.
@@ -71,15 +87,11 @@ Como todos estos factores están en oposición unos con otros, debes encontrar u
 
 Te hemos dado este proyecto justamente a tí porque sabemos que ustedes en MatCom tienen conocimientos que el resto de nosotros ni imaginamos. En particular, sabemos que hay algo llamado "modelo vectorial" que aparentemente tiene que ver con un arte arcano llamado "álgebra" que permite hacer estas búsquedas muchísimo más rápido que con un simple ciclo `for` por cada documento. De más está decir que esperamos que hagas gala de estos poderes extraordinarios que la matemática te concedió, porque para hacer esto con un doble `for` hubiéramos contratado a cualquier otro.
 
-Si te sirve de algo, hace unos meses contratamos a un gurú de los algoritmos de búsqueda para ver si nos podía enseñar a implementar este proyecto por nosotros mismos, y nos dio una conferencia de 4 horas de la que no entendimos casi nada (debía ser uno de ustedes, porque parecía llevar meses sin afeitar y hablaba solo consigo mismo, susurrando cosas como "turing completo" y "subespacio propio"). En fin, aunque de poco sirvió, al menos uno de nosotros recordó, luego de la conferencia, que había algo llamado "TF-IDF" que aparentemente era la clave para resolver este problema de búsqueda, y que tiene algo que ver con una cosa llamada Álgebra Lineal. Seguro que tu sabes de qué se trata.
-
-Pues nada, esta idea le encantó a nuestros inversionistas, suponemos que porque así pueden justificar que nuestro buscador "usa matemática avanzada" y por tanto es mejor que el de la competencia. Así que, para complacerlos a ellos, es necesario que implementes el algoritmo de búsqueda usando estas ideas del Álgebra Lineal.
-
-Es más, como es muy probable que sigamos haciendo buscadores en el futuro (si es que este da negocio), vamos a necesitar que esos algoritmos y operaciones matemáticas estén bien encapsulados en una biblioteca de clases independiente que podamos reusar en el futuro.
+Si te sirve de algo, hace unos meses contratamos a un gurú de los algoritmos de búsqueda para ver si nos podía enseñar a implementar este proyecto por nosotros mismos, y nos dio una conferencia de 4 horas de la que no entendimos casi nada (debía ser uno de ustedes, porque parecía llevar meses sin afeitar y hablaba solo consigo mismo, susurrando cosas como "turing completo" y "subespacio propio"). En fin, aunque de poco sirvió, al menos uno de nosotros recordó, luego de la conferencia, que había algo llamado "TF-IDF" que aparentemente era la clave para resolver este problema de búsqueda. Seguro que tu sabes de qué se trata.
 
 ## Sobre la interfaz gráfica
 
-Como verás cuando ejecutes la aplicación (que se explica más abajo), la interfaz gráfica es bastante pobre. En principio, no tienes obligación de trabajar en esta parte del proyecto (sabemos que ustedes los científicos de la computación están por encima de estas mundeces).
+Como verás cuando ejecutes la aplicación (que se explica más abajo), la interfaz gráfica es bastante pobre. En principio, no tienes obligación de trabajar en esta parte del proyecto ( sabemos que ustedes los científicos de la computación están por encima de estas mundeces).
 
 Pero si nos quieres ayudar, eres libre de modificar la interfaz gráfica todo lo que desees, eso sí, siempre que se mantenga la idea original de la aplicación. Si te interesa aprender Blazor, HTML, o CSS, eres libre de jugar con el código de la interfaz gráfica, que está en el proyecto `MoogleServer`.
 
@@ -104,27 +116,6 @@ dotnet watch run --project MoogleServer
 ## Sobre la ingeniería de software
 
 Por supuesto, queremos que este proyecto sea lo más extensible y mantenible posible, incluso por personas con inteligencia nivel normal, no solo superdotados; así que agradeceríamos que tengas cuidado con la organización, los nombres de los métodos y clases, los miembros que deben ser públicos y privados, y sobre todo, poner muchos comentarios que expliquen por qué haces cada cosa. Sino, luego vendrá algún pobre infeliz (que no será de MatCom) y no sabrá por donde entrarle al proyecto.
-
-## Funcionalidades opcionales
-
-Si implementas todo lo anterior, ya tendremos un producto mínimo viable. Vaya, digamos un 3. Pero para de verdad llevarnos todo el mercado, podemos mejorar la búsqueda notablemente si incluímos algunas de las siguientes funcionalidades opcionales (y tú te llevarás una bonificación, por supuesto).
-
-Por ejemplo, podemos introducir operadores en las consultas, tales cómo:
-
-- Un símbolo `!` delante de una palabra (e.j., `"algoritmos de búsqueda !ordenación"`) indica que esa palabra **no debe aparecer** en ningún documento que sea devuelto.
-- Un símbolo `^` delante de una palabra (e.j., `"algoritmos de ^ordenación"`) indica que esa palabra **tiene que aparecer** en cualquier documento que sea devuelto.
-- Un símbolo `~` entre dos o más términos indica que esos términos deben **aparecer cerca**, o sea, que mientras más cercanos estén en el documento mayor será la relevancia. Por ejemplo, para la búsqueda `"algoritmos ~ ordenación"`, mientras más cerca están las palabras `"algoritmo"` y `"ordenación"`, más alto debe ser el `score` de ese documento.
-- Cualquier cantidad de símbolos `*` delante de un término indican que ese término es más importante, por lo que su influencia en el `score` debe ser mayor que la tendría normalmente (este efecto será acumulativo por cada `*`, por ejemplo `"algoritmos de **ordenación"` indica que la palabra `"ordenación"` tiene dos veces más prioridad que `"algoritmos"`).
-- U otro cualquiera que se te ocurra...
-
-Además, podemos tener en cuenta otras mejoras como las siguientes:
-
-- Si las palabras exactas no aparecen, pero aparecen palabras derivadas de la misma raíz, también queremos devolver esos documentos (por ejemplo, si no está `"ordenación"` pero estar `"ordenados"`, ese documento puede devolverse pero con un `score` menor).
-- Si aparecen palabras relacionadas aunque no tengan la misma raíz (por ejemplo si la búsqueda es `"computadora"` y el documento tiene `"ordenador"`), también queremos devolver esos documentos pero con menor `score` que si apareciera la palabra exacta o una de la misma raíz.
-
-Otra idea interesante es dar sugerencias cuando la búsqueda genere muy pocos resultados. Para esto puedes usar el parámetro `suggestion` de la clase `SearchResult` (tú debes decidir qué serían pocos resultados en este contexto). Esta sugerencia debe ser algo similar a la consulta del usuario pero que sí exista, de forma que si el usuario se equivoca, por ejemplo, escribiendo `"reculsibidá"`, y no aparece (evidentemente) ningún documento con ese contenido, le podamos sugerir la palabra `"recursividad"`.
-
-Y por supuesto, cualquier otra idea que mejore la búsqueda, la haga más eficiente, más expresiva, o más útil, también es bienvenida.
 
 ## Palabras finales
 
